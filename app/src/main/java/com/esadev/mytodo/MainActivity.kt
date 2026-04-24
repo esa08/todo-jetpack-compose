@@ -4,14 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.*
+import com.esadev.mytodo.ui.HomeScreen
+import com.esadev.mytodo.ui.TaskScreen
 import com.esadev.mytodo.ui.theme.MytodoTheme
+
+sealed class Screen {
+    object Home : Screen()
+    data class Tasks(val folderId: String, val folderName: String) : Screen()
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,29 +20,24 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MytodoTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
+
+                when (val screen = currentScreen) {
+                    is Screen.Home -> {
+                        HomeScreen(
+                            onFolderClick = { folder ->
+                                currentScreen = Screen.Tasks(folder.id, folder.name)
+                            }
+                        )
+                    }
+                    is Screen.Tasks -> {
+                        TaskScreen(
+                            listName = screen.folderName,
+                            onBack = { currentScreen = Screen.Home }
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MytodoTheme {
-        Greeting("Android")
     }
 }
